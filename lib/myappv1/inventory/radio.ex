@@ -7,6 +7,7 @@ defmodule Myappv1.Inventory.Radio do
     field :code, :string
 
     belongs_to :category, Myappv1.Inventory.Category
+    many_to_many :tags, Myappv1.Inventory.Tag, join_through: "radios_tags", on_replace: :delete
     timestamps(type: :utc_datetime)
   end
 
