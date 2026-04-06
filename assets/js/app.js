@@ -26,10 +26,19 @@ import {hooks as colocatedHooks} from "phoenix-colocated/myappv1"
 import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+
+const FlashAutoHide = {
+  mounted() {
+    setTimeout(() => {
+      this.el.remove()
+    }, 3000)
+  }
+}
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {FlashAutoHide, ...colocatedHooks},
 })
 
 // Show progress bar on live navigation and form submits
