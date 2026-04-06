@@ -1,0 +1,26 @@
+<Layouts.app flash={@flash}>
+  <.header>
+    Listing Radios
+    <:actions>
+      <.button href={~p"/radios/new"}>
+        <.icon name="hero-plus" /> New Radio
+      </.button>
+    </:actions>
+  </.header>
+
+  <.table id="radios" rows={@radios} row_click={&JS.navigate(~p"/radios/#{&1}")}>
+    <:col :let={radio} label="Name">{radio.name}</:col>
+    <:col :let={radio} label="Code">{radio.code}</:col>
+    <:action :let={radio}>
+      <div class="sr-only">
+        <.link navigate={~p"/radios/#{radio}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/radios/#{radio}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={radio}>
+      <.link href={~p"/radios/#{radio}"} method="delete" data-confirm="Are you sure?">
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.app>

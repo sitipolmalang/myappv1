@@ -18,6 +18,20 @@ defmodule Myappv1Web.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    # Routes for the Radio resource using LiveView
+    live "/radios", RadioLive.Index, :index
+    # live "/radios/:id", RadioLive.Show, :show
+    live "/radios/new", RadioLive.Form, :new
+    live "/radios/:id/edit", RadioLive.Form, :edit
+    # Routes for the Radio resource using traditional controllers
+    get "/radios/:id", RadioController, :show
+
+    # Routes for the Category resource using LiveView
+    live "/categories", CategoryLive.Index, :index
+    live "/categories/new", CategoryLive.Form, :new
+    live "/categories/:id", CategoryLive.Show, :show
+    live "/categories/:id/edit", CategoryLive.Form, :edit
   end
 
   # Other scopes may use custom stacks.

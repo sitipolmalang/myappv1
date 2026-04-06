@@ -1,0 +1,8 @@
+<Layouts.app flash={@flash}>
+  <.header>
+    New Radio
+    <:subtitle>Use this form to manage radio records in your database.</:subtitle>
+  </.header>
+
+  <.radio_form changeset={@changeset} action={~p"/radios"} return_to={~p"/radios"} />
+</Layouts.app>
