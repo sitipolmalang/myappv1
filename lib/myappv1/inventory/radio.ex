@@ -13,7 +13,7 @@ defmodule Myappv1.Inventory.Radio do
   @doc false
   def changeset(radio, attrs) do
     radio
-    |> cast(attrs, [:name, :code])
+    |> cast(attrs, [:name, :code, :category_id])
     |> validate_required([:name, :code])
     |> unique_constraint(:code)
     |> foreign_key_constraint(:category_id)

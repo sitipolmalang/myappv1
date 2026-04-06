@@ -77,7 +77,10 @@ defmodule Myappv1.Inventory do
     radio
     |> Radio.changeset(attrs)
     |> Repo.update()
-    |> Repo.preload(:category)
+    |> case do
+      {:ok, radio} -> {:ok, Repo.preload(radio, :category)}
+      error -> error
+    end
   end
 
   @doc """
