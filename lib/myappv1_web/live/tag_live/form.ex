@@ -2,7 +2,6 @@ defmodule Myappv1Web.TagLive.Form do
   use Myappv1Web, :live_view
 
   alias Myappv1.Inventory
-  alias Myappv1.Inventory.Category
   alias Myappv1.Inventory.Tag
 
 
