@@ -32,6 +32,12 @@ defmodule Myappv1Web.Router do
     live "/categories/new", CategoryLive.Form, :new
     live "/categories/:id", CategoryLive.Show, :show
     live "/categories/:id/edit", CategoryLive.Form, :edit
+
+    # Routes for the Tag resource using LiveView
+    live "/tags", TagLive.Index, :index
+    live "/tags/new", TagLive.Form, :new
+    live "/tags/:id", TagLive.Show, :show
+    live "/tags/:id/edit", TagLive.Form, :edit
   end
 
   # Other scopes may use custom stacks.
