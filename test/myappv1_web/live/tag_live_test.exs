@@ -2,7 +2,9 @@ defmodule Myappv1Web.TagLiveTest do
   use Myappv1Web.ConnCase
 
   import Phoenix.LiveViewTest
+
   import Myappv1.InventoryFixtures
+
 
   @create_attrs %{name: "some name"}
   @update_attrs %{name: "some updated name"}

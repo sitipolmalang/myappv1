@@ -2,7 +2,9 @@ defmodule Myappv1Web.TagLive.Form do
   use Myappv1Web, :live_view
 
   alias Myappv1.Inventory
+  alias Myappv1.Inventory.Category
   alias Myappv1.Inventory.Tag
+
 
   @impl true
   def render(assigns) do
@@ -36,12 +38,15 @@ defmodule Myappv1Web.TagLive.Form do
   defp return_to(_), do: "index"
 
   defp apply_action(socket, :edit, %{"id" => id}) do
+
     tag = Inventory.get_tag!(id)
+
 
     socket
     |> assign(:page_title, "Edit Tag")
     |> assign(:tag, tag)
     |> assign(:form, to_form(Inventory.change_tag(tag)))
+
   end
 
   defp apply_action(socket, :new, _params) do
@@ -50,12 +55,16 @@ defmodule Myappv1Web.TagLive.Form do
     socket
     |> assign(:page_title, "New Tag")
     |> assign(:tag, tag)
+
     |> assign(:form, to_form(Inventory.change_tag(tag)))
+
   end
 
   @impl true
   def handle_event("validate", %{"tag" => tag_params}, socket) do
+
     changeset = Inventory.change_tag(socket.assigns.tag, tag_params)
+
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
@@ -64,7 +73,9 @@ defmodule Myappv1Web.TagLive.Form do
   end
 
   defp save_tag(socket, :edit, tag_params) do
+
     case Inventory.update_tag(socket.assigns.tag, tag_params) do
+
       {:ok, tag} ->
         {:noreply,
          socket
@@ -77,7 +88,9 @@ defmodule Myappv1Web.TagLive.Form do
   end
 
   defp save_tag(socket, :new, tag_params) do
+
     case Inventory.create_tag(tag_params) do
+
       {:ok, tag} ->
         {:noreply,
          socket

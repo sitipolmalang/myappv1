@@ -3,6 +3,7 @@ defmodule Myappv1Web.TagLive.Index do
 
   alias Myappv1.Inventory
 
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -53,6 +54,7 @@ defmodule Myappv1Web.TagLive.Index do
   def handle_event("delete", %{"id" => id}, socket) do
     tag = Inventory.get_tag!(id)
     {:ok, _} = Inventory.delete_tag(tag)
+
 
     {:noreply, stream_delete(socket, :tags, tag)}
   end

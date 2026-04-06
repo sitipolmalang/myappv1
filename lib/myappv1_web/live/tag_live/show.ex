@@ -3,6 +3,7 @@ defmodule Myappv1Web.TagLive.Show do
 
   alias Myappv1.Inventory
 
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -33,5 +34,6 @@ defmodule Myappv1Web.TagLive.Show do
      socket
      |> assign(:page_title, "Show Tag")
      |> assign(:tag, Inventory.get_tag!(id))}
+
   end
 end
