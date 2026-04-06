@@ -4,10 +4,12 @@ defmodule Myappv1.Inventory do
   """
 
   import Ecto.Query, warn: false
+  import Ecto.Changeset, only: [put_assoc: 3]
   alias Myappv1.Repo
 
   alias Myappv1.Inventory.Radio
   alias Myappv1.Inventory.Category
+  alias Myappv1.Inventory.Tag
 
   @doc """
   Returns the list of radios.
@@ -20,7 +22,7 @@ defmodule Myappv1.Inventory do
   """
   def list_radios do
     Repo.all(Radio)
-    |> Repo.preload(:category)
+    |> Repo.preload([:category, :tags])
 
   end
 
@@ -40,7 +42,7 @@ defmodule Myappv1.Inventory do
   """
   def get_radio!(id) do
     Repo.get!(Radio, id)
-    |> Repo.preload(:category)
+    |> Repo.preload([:category, :tags])
   end
 
   @doc """
@@ -58,6 +60,7 @@ defmodule Myappv1.Inventory do
   def create_radio(attrs) do
     %Radio{}
     |> Radio.changeset(attrs)
+    |> put_assoc(:tags, tags_for_attrs(attrs))
     |> Repo.insert()
   end
 
@@ -75,10 +78,12 @@ defmodule Myappv1.Inventory do
   """
   def update_radio(%Radio{} = radio, attrs) do
     radio
+    |> Repo.preload(:tags)
     |> Radio.changeset(attrs)
+    |> put_assoc(:tags, tags_for_attrs(attrs))
     |> Repo.update()
     |> case do
-      {:ok, radio} -> {:ok, Repo.preload(radio, :category)}
+      {:ok, radio} -> {:ok, Repo.preload(radio, [:category, :tags])}
       error -> error
     end
   end
@@ -109,8 +114,37 @@ defmodule Myappv1.Inventory do
 
   """
   def change_radio(%Radio{} = radio, attrs \\ %{}) do
+    radio = with_tag_ids(radio)
     Radio.changeset(radio, attrs)
   end
+
+  defp with_tag_ids(%Radio{tags: tags} = radio) when is_list(tags) do
+    %{radio | tag_ids: Enum.map(tags, & &1.id)}
+  end
+
+  defp with_tag_ids(radio), do: radio
+
+  defp tags_for_attrs(attrs) do
+    attrs
+    |> Map.get("tag_ids", Map.get(attrs, :tag_ids, []))
+    |> List.wrap()
+    |> Enum.map(&parse_tag_id/1)
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> []
+      ids -> Repo.all(from t in Tag, where: t.id in ^ids)
+    end
+  end
+
+  defp parse_tag_id(id) when is_integer(id), do: id
+  defp parse_tag_id(id) when is_binary(id) do
+    case Integer.parse(id) do
+      {int, _} -> int
+      _ -> nil
+    end
+  end
+
+  defp parse_tag_id(_), do: nil
 
   @doc """
   Returns the list of categories.

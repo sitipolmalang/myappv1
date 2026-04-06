@@ -17,6 +17,8 @@ defmodule Myappv1Web.RadioLive.Form do
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:code]} type="text" label="Code" />
         <.input field={@form[:category_id]} type="select" label="Category" options={Enum.map(Inventory.list_categories(), &{&1.name, &1.id})} />
+        <.input field={@form[:tag_ids]} type="select" label="Tags" multiple options={Enum.map(Inventory.list_tags(), &{&1.name, &1.id})} />
+
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">Save Radio</.button>
           <.button navigate={return_path(@return_to, @radio)}>Cancel</.button>

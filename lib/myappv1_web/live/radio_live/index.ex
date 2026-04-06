@@ -30,6 +30,13 @@ defmodule Myappv1Web.RadioLive.Index do
             No Category
           <% end %>
         </:col>
+        <:col :let={{_id, radio}} label="Tags">
+          <%= if radio.tags && length(radio.tags) > 0 do %>
+            <%= Enum.map_join(radio.tags, ", ", & &1.name) %>
+          <% else %>
+            No Tags
+          <% end %>
+        </:col>
         <:action :let={{_id, radio}}>
           <div class="sr-only">
             <.link navigate={~p"/radios/#{radio}"}>Show</.link>

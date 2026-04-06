@@ -17,9 +17,20 @@
     <:item title="Code">{@radio.code}</:item>
     <:item title="Category">
       <%= if @radio.category do %>
-        <%= @radio.category.name %>
+        {@radio.category.name}
       <% else %>
         No Category
+      <% end %>
+    </:item>
+    <:item title="Tags">
+      <%= if @radio.tags && Enum.any?(@radio.tags) do %>
+        <ul>
+          <%= for tag <- @radio.tags do %>
+            <li>{tag.name}</li>
+          <% end %>
+        </ul>
+      <% else %>
+        No Tags
       <% end %>
     </:item>
   </.list>
