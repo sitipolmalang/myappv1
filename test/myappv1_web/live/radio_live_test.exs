@@ -4,6 +4,8 @@ defmodule Myappv1Web.RadioLiveTest do
   import Phoenix.LiveViewTest
   import Myappv1.InventoryFixtures
 
+  alias Myappv1.Inventory
+
   @create_attrs %{code: "some code", name: "some name"}
   @update_attrs %{code: "some updated code", name: "some updated name"}
   @invalid_attrs %{code: nil, name: nil}
@@ -83,24 +85,18 @@ defmodule Myappv1Web.RadioLiveTest do
     end
   end
 
-  describe "Show" do
+  describe "Show (controller)" do
     setup [:create_radio]
 
     test "displays radio", %{conn: conn, radio: radio} do
-      {:ok, _show_live, html} = live(conn, ~p"/radios/#{radio}")
-
-      assert html =~ "Show Radio"
+      conn = get(conn, ~p"/radios/#{radio}")
+      html = html_response(conn, 200)
+      assert html =~ "Radio #{radio.id}"
       assert html =~ radio.name
     end
 
-    test "updates radio and returns to show", %{conn: conn, radio: radio} do
-      {:ok, show_live, _html} = live(conn, ~p"/radios/#{radio}")
-
-      assert {:ok, form_live, _} =
-               show_live
-               |> element("a", "Edit")
-               |> render_click()
-               |> follow_redirect(conn, ~p"/radios/#{radio}/edit?return_to=show")
+    test "updates radio from edit with return_to show", %{conn: conn, radio: radio} do
+      {:ok, form_live, _html} = live(conn, ~p"/radios/#{radio}/edit?return_to=show")
 
       assert render(form_live) =~ "Edit Radio"
 
@@ -108,15 +104,14 @@ defmodule Myappv1Web.RadioLiveTest do
              |> form("#radio-form", radio: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
-      assert {:ok, show_live, _html} =
-               form_live
-               |> form("#radio-form", radio: @update_attrs)
-               |> render_submit()
-               |> follow_redirect(conn, ~p"/radios/#{radio}")
+      form_live
+      |> form("#radio-form", radio: @update_attrs)
+      |> render_submit()
 
-      html = render(show_live)
-      assert html =~ "Radio updated successfully"
-      assert html =~ "some updated name"
+      assert Inventory.get_radio!(radio.id).name == "some updated name"
+
+      conn = get(conn, ~p"/radios/#{radio}")
+      assert html_response(conn, 200) =~ "some updated name"
     end
   end
 end

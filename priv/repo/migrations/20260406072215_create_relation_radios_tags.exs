@@ -10,6 +10,5 @@ defmodule Myappv1.Repo.Migrations.CreateRelationRadiosTags do
     create(index(:radios_tags, [:radio_id]))
     create(index(:radios_tags, [:tag_id]))
     create(unique_index(:radios_tags, [:radio_id, :tag_id]))
-
   end
 end

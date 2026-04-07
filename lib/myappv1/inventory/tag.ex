@@ -5,7 +5,10 @@ defmodule Myappv1.Inventory.Tag do
   schema "tags" do
     field :name, :string
 
-    many_to_many :radios, Myappv1.Inventory.Radio, join_through: "radios_tags", on_replace: :delete
+    many_to_many :radios, Myappv1.Inventory.Radio,
+      join_through: "radios_tags",
+      on_replace: :delete
+
     timestamps(type: :utc_datetime)
   end
 

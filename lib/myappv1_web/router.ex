@@ -25,6 +25,9 @@ defmodule Myappv1Web.Router do
     live "/radios/new", RadioLive.Form, :new
     live "/radios/:id/edit", RadioLive.Form, :edit
     # Routes for the Radio resource using traditional controllers
+    post "/radios", RadioController, :create
+    put "/radios/:id", RadioController, :update
+    delete "/radios/:id", RadioController, :delete
     get "/radios/:id", RadioController, :show
 
     # Routes for the Category resource using LiveView

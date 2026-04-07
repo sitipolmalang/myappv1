@@ -12,12 +12,14 @@ defmodule Myappv1.InventoryTest do
 
     test "list_radios/0 returns all radios" do
       radio = radio_fixture()
-      assert Inventory.list_radios() == [radio]
+      assert Enum.map(Inventory.list_radios(), & &1.id) == [radio.id]
     end
 
     test "get_radio!/1 returns the radio with given id" do
       radio = radio_fixture()
-      assert Inventory.get_radio!(radio.id) == radio
+      fetched = Inventory.get_radio!(radio.id)
+      assert fetched.id == radio.id
+      assert fetched.name == radio.name
     end
 
     test "create_radio/1 with valid data creates a radio" do
@@ -44,7 +46,9 @@ defmodule Myappv1.InventoryTest do
     test "update_radio/2 with invalid data returns error changeset" do
       radio = radio_fixture()
       assert {:error, %Ecto.Changeset{}} = Inventory.update_radio(radio, @invalid_attrs)
-      assert radio == Inventory.get_radio!(radio.id)
+      unchanged = Inventory.get_radio!(radio.id)
+      assert unchanged.id == radio.id
+      assert unchanged.name == radio.name
     end
 
     test "delete_radio/1 deletes the radio" do

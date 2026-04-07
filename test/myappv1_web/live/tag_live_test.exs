@@ -5,7 +5,6 @@ defmodule Myappv1Web.TagLiveTest do
 
   import Myappv1.InventoryFixtures
 
-
   @create_attrs %{name: "some name"}
   @update_attrs %{name: "some updated name"}
   @invalid_attrs %{name: nil}

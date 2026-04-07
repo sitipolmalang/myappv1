@@ -10,6 +10,7 @@ defmodule Myappv1.Inventory do
   alias Myappv1.Repo
 
   alias Myappv1.Inventory.Radio
+  alias Myappv1.Inventory.RadioImage
   alias Myappv1.Inventory.Category
   alias Myappv1.Inventory.Tag
 
@@ -21,7 +22,11 @@ defmodule Myappv1.Inventory do
   """
   def list_radios do
     Repo.all(Radio)
-    |> Repo.preload([:category, :tags])
+    |> Repo.preload([
+      :category,
+      :tags,
+      radio_images: from(ri in RadioImage, order_by: [asc: ri.slot])
+    ])
   end
 
   @doc """
@@ -30,7 +35,11 @@ defmodule Myappv1.Inventory do
   """
   def get_radio!(id) do
     Repo.get!(Radio, id)
-    |> Repo.preload([:category, :tags])
+    |> Repo.preload([
+      :category,
+      :tags,
+      radio_images: from(ri in RadioImage, order_by: [asc: ri.slot])
+    ])
   end
 
   @doc """
@@ -55,15 +64,81 @@ defmodule Myappv1.Inventory do
     |> put_assoc(:tags, tags_for_attrs(attrs))
     |> Repo.update()
     |> case do
-      {:ok, radio} -> {:ok, Repo.preload(radio, [:category, :tags])}
-      error -> error
+      {:ok, radio} ->
+        {:ok,
+         Repo.preload(radio, [
+           :category,
+           :tags,
+           radio_images: from(ri in RadioImage, order_by: [asc: ri.slot])
+         ])}
+
+      error ->
+        error
     end
   end
+
+  @doc """
+  Menyimpan atau mengganti gambar pada slot 1..3 untuk sebuah radio.
+  `upload` dapat berupa `%Plug.Upload{}` atau `%{filename: binary(), binary: binary()}` (mis. dari LiveView setelah `File.read`).
+  """
+  def put_radio_image(%Radio{} = radio, slot, upload) when slot in 1..3 do
+    radio = Repo.preload(radio, :radio_images)
+    existing = Enum.find(radio.radio_images, &(&1.slot == slot))
+
+    result =
+      Repo.transaction(fn ->
+        if existing do
+          delete_radio_image_file(existing)
+          Repo.delete!(existing)
+        end
+
+        %RadioImage{}
+        |> RadioImage.changeset(%{
+          "radio_id" => radio.id,
+          "slot" => slot,
+          "image" => upload
+        })
+        |> Repo.insert()
+        |> case do
+          {:ok, ri} -> ri
+          {:error, cs} -> Repo.rollback(cs)
+        end
+      end)
+
+    case result do
+      {:ok, _} -> {:ok, get_radio!(radio.id)}
+      {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
+      {:error, _} = other -> other
+    end
+  end
+
+  @doc """
+  Menghapus gambar pada slot tertentu (jika ada).
+  """
+  def delete_radio_image_slot(%Radio{} = radio, slot) when slot in 1..3 do
+    case Repo.get_by(RadioImage, radio_id: radio.id, slot: slot) do
+      nil ->
+        {:ok, :noop}
+
+      img ->
+        delete_radio_image_file(img)
+        Repo.delete(img)
+    end
+  end
+
+  defp delete_radio_image_file(%RadioImage{image: image} = ri) when not is_nil(image) do
+    _ = Myappv1.Uploaders.RadioImage.delete({image, ri})
+    :ok
+  end
+
+  defp delete_radio_image_file(%RadioImage{}), do: :ok
 
   @doc """
   Menghapus data radio dari database.
   """
   def delete_radio(%Radio{} = radio) do
+    radio = Repo.preload(radio, :radio_images)
+    Enum.each(radio.radio_images, &delete_radio_image_file/1)
     Repo.delete(radio)
   end
 
@@ -101,12 +176,14 @@ defmodule Myappv1.Inventory do
 
   # Parse tag_id dari berbagai tipe: integer, binary/string, atau lainnya
   defp parse_tag_id(id) when is_integer(id), do: id
+
   defp parse_tag_id(id) when is_binary(id) do
     case Integer.parse(id) do
       {int, _} -> int
       _ -> nil
     end
   end
+
   defp parse_tag_id(_), do: nil
 
   # ============ FUNGSI CRUD UNTUK CATEGORY ============

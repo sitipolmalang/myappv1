@@ -9,6 +9,7 @@ defmodule Myappv1.Inventory.Radio do
 
     belongs_to :category, Myappv1.Inventory.Category
     many_to_many :tags, Myappv1.Inventory.Tag, join_through: "radios_tags", on_replace: :delete
+    has_many :radio_images, Myappv1.Inventory.RadioImage
     timestamps(type: :utc_datetime)
   end
 

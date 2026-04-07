@@ -24,7 +24,7 @@ category_names = [
   "Base Station",
   "Mobile",
   "Repeater",
-  "Scanning",
+  "Scanning"
 ]
 
 for name <- category_names do
@@ -42,7 +42,7 @@ tag_names = [
   "PMR446",
   "CB Radio",
   "Amateur",
-  "Commercial",
+  "Commercial"
 ]
 
 for name <- tag_names do

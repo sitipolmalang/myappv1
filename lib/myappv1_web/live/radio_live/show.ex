@@ -10,18 +10,18 @@ defmodule Myappv1Web.RadioLive.Show do
       <.header>
         Radio {@radio.id}
         <:subtitle>This is a radio record from your database.</:subtitle>
+        
         <:actions>
-          <.button navigate={~p"/radios"}>
-            <.icon name="hero-arrow-left" />
-          </.button>
+          <.button navigate={~p"/radios"}><.icon name="hero-arrow-left" /></.button>
           <.button variant="primary" navigate={~p"/radios/#{@radio}/edit?return_to=show"}>
             <.icon name="hero-pencil-square" /> Edit radio
           </.button>
         </:actions>
       </.header>
-
+      
       <.list>
         <:item title="Name">{@radio.name}</:item>
+        
         <:item title="Code">{@radio.code}</:item>
       </.list>
     </Layouts.app>

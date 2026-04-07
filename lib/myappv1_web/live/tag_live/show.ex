@@ -3,7 +3,6 @@ defmodule Myappv1Web.TagLive.Show do
 
   alias Myappv1.Inventory
 
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -11,16 +10,15 @@ defmodule Myappv1Web.TagLive.Show do
       <.header>
         Tag {@tag.id}
         <:subtitle>This is a tag record from your database.</:subtitle>
+        
         <:actions>
-          <.button navigate={~p"/tags"}>
-            <.icon name="hero-arrow-left" />
-          </.button>
+          <.button navigate={~p"/tags"}><.icon name="hero-arrow-left" /></.button>
           <.button variant="primary" navigate={~p"/tags/#{@tag}/edit?return_to=show"}>
             <.icon name="hero-pencil-square" /> Edit tag
           </.button>
         </:actions>
       </.header>
-
+      
       <.list>
         <:item title="Name">{@tag.name}</:item>
       </.list>
@@ -34,6 +32,5 @@ defmodule Myappv1Web.TagLive.Show do
      socket
      |> assign(:page_title, "Show Tag")
      |> assign(:tag, Inventory.get_tag!(id))}
-
   end
 end
