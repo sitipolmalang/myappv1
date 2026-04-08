@@ -68,19 +68,18 @@ defmodule Myappv1Web.RadioLive.UploadHelpers do
       |> Enum.map_join("; ", fn {key, value} -> "#{key}: #{Enum.join(value, ", ")}" end)
 
     if detail != "" do
-      # Data radio sudah tersimpan, tapi upload gambar gagal di tahap validasi/simpan file.
-      "Radio tersimpan, tetapi gambar gagal: #{detail}"
+      "Gambar gagal: #{detail}"
     else
-      "Radio tersimpan, tetapi gambar gagal disimpan."
+      "Gambar gagal disimpan."
     end
   end
 
   def upload_error_message({:read, reason}) do
-    "Radio tersimpan, tetapi berkas upload tidak bisa dibaca (#{inspect(reason)})."
+    "Berkas upload tidak bisa dibaca (#{inspect(reason)})."
   end
 
-  def upload_error_message(_),
-    do: "Radio tersimpan, tetapi satu atau lebih gambar gagal disimpan."
+  def upload_error_message(:upload),
+    do: "Satu atau lebih gambar gagal disimpan."
 
   defp slot_upload_atom(1), do: :radio_slot_1
   defp slot_upload_atom(2), do: :radio_slot_2

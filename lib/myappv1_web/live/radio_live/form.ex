@@ -77,28 +77,31 @@ defmodule Myappv1Web.RadioLive.Form do
   end
 
   def handle_event("remove_image", %{"slot" => slot}, socket) do
-    slot = String.to_integer(slot)
+    case Integer.parse(slot) do
+      {slot_int, _} when slot_int in 1..3 ->
+        case socket.assigns.radio do
+          %Radio{id: nil} ->
+            {:noreply, socket}
 
-    case socket.assigns.radio do
-      %Radio{id: nil} ->
-        {:noreply, socket}
+          %Radio{} = radio ->
+            case Inventory.delete_radio_image_slot(radio, slot_int) do
+              {:ok, _} ->
+                radio = Inventory.get_radio!(radio.id)
+                {:noreply, assign(socket, :radio, radio)}
 
-      %Radio{} = radio ->
-        case Inventory.delete_radio_image_slot(radio, slot) do
-          {:ok, _} ->
-            radio = Inventory.get_radio!(radio.id)
-            {:noreply, assign(socket, :radio, radio)}
-
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Could not remove image")}
+              {:error, _} ->
+                {:noreply, put_flash(socket, :error, "Could not remove image")}
+            end
         end
+
+      _ ->
+        {:noreply, socket}
     end
   end
 
   defp save_radio(socket, :edit, radio_params) do
     case Inventory.update_radio(socket.assigns.radio, radio_params) do
       {:ok, radio} ->
-        # Upload diproses setelah update data inti agar perubahan form tetap tersimpan walau upload gagal.
         case UploadHelpers.consume_all_slot_uploads(socket, radio) do
           {:ok, radio} ->
             {:noreply,
@@ -125,7 +128,6 @@ defmodule Myappv1Web.RadioLive.Form do
   defp save_radio(socket, :new, radio_params) do
     case Inventory.create_radio(radio_params) do
       {:ok, radio} ->
-        # Pola sama dengan edit: simpan radio dulu, lalu proses upload tiap slot.
         case UploadHelpers.consume_all_slot_uploads(socket, radio) do
           {:ok, radio} ->
             {:noreply,
@@ -135,14 +137,14 @@ defmodule Myappv1Web.RadioLive.Form do
              |> push_navigate(to: return_path(socket.assigns.return_to, radio))}
 
           {:error, reason} ->
-            radio = Inventory.get_radio!(radio.id)
+            _ = Inventory.delete_radio(radio)
             msg = UploadHelpers.upload_error_message(reason)
 
             {:noreply,
              socket
-             |> assign(:radio, radio)
-             |> put_flash(:error, msg)
-             |> push_navigate(to: ~p"/radios/#{radio}/edit")}
+             |> assign(:radio, %Radio{})
+             |> assign(:form, to_form(Inventory.change_radio(%Radio{})))
+             |> put_flash(:error, msg)}
         end
 
       {:error, %Ecto.Changeset{} = changeset} ->

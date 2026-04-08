@@ -48,17 +48,10 @@ defmodule Myappv1Web.RadioLive.FormComponents do
               <% end %>
 
               <label class="block text-xs text-zinc-600 dark:text-zinc-400">
-                <%= if slot == 1 do %>
-                  <.live_file_input upload={@uploads.radio_slot_1} class="block w-full text-sm" />
-                <% end %>
-
-                <%= if slot == 2 do %>
-                  <.live_file_input upload={@uploads.radio_slot_2} class="block w-full text-sm" />
-                <% end %>
-
-                <%= if slot == 3 do %>
-                  <.live_file_input upload={@uploads.radio_slot_3} class="block w-full text-sm" />
-                <% end %>
+                <.live_file_input
+                  upload={Map.get(@uploads, :"radio_slot_#{slot}")}
+                  class="block w-full text-sm"
+                />
               </label>
             </div>
           <% end %>
