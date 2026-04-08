@@ -10,7 +10,7 @@ defmodule Myappv1Web.CategoryLive.Show do
       <.header>
         Category {@category.id}
         <:subtitle>This is a category record from your database.</:subtitle>
-        
+
         <:actions>
           <.button navigate={~p"/categories"}><.icon name="hero-arrow-left" /></.button>
           <.button variant="primary" navigate={~p"/categories/#{@category}/edit?return_to=show"}>
@@ -18,7 +18,7 @@ defmodule Myappv1Web.CategoryLive.Show do
           </.button>
         </:actions>
       </.header>
-      
+
       <.list>
         <:item title="Name">{@category.name}</:item>
       </.list>

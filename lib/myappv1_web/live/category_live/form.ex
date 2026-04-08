@@ -12,7 +12,7 @@ defmodule Myappv1Web.CategoryLive.Form do
         {@page_title}
         <:subtitle>Use this form to manage category records in your database.</:subtitle>
       </.header>
-      
+
       <.form for={@form} id="category-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:name]} type="text" label="Name" />
         <footer>

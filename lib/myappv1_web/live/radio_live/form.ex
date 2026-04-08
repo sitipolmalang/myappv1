@@ -3,6 +3,8 @@ defmodule Myappv1Web.RadioLive.Form do
 
   alias Myappv1.Inventory
   alias Myappv1.Inventory.Radio
+  alias Myappv1Web.RadioLive.FormComponents
+  alias Myappv1Web.RadioLive.UploadHelpers
 
   @impl true
   def render(assigns) do
@@ -12,80 +14,15 @@ defmodule Myappv1Web.RadioLive.Form do
         {@page_title}
         <:subtitle>Use this form to manage radio records in your database.</:subtitle>
       </.header>
-      
-      <.form for={@form} id="radio-form" phx-change="validate" phx-submit="save">
-        <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:code]} type="text" label="Code" />
-        <.input
-          field={@form[:category_id]}
-          type="select"
-          label="Category"
-          options={Enum.map(Inventory.list_categories(), &{&1.name, &1.id})}
-        />
-        <.input
-          field={@form[:tag_ids]}
-          type="select"
-          label="Tags"
-          multiple
-          options={Enum.map(Inventory.list_tags(), &{&1.name, &1.id})}
-        />
-        <div class="space-y-6 pt-2">
-          <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Images (optional, max 3)</p>
-          
-          <div class="grid gap-6 sm:grid-cols-3">
-            <%= for slot <- 1..3 do %>
-              <div class="rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
-                <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                  Slot {slot}
-                </p>
-                
-                <%= if ri = radio_image_at(radio_images_list(@radio), slot) do %>
-                  <div class="mb-3 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-600">
-                    <img
-                      src={radio_image_url(ri)}
-                      alt=""
-                      class="h-32 w-full object-cover"
-                    />
-                  </div>
-                  
-                  <.button
-                    type="button"
-                    class="mb-3 w-full border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-                    phx-click="remove_image"
-                    phx-value-slot={slot}
-                    id={"remove-image-slot-#{slot}"}
-                  >
-                    Remove image
-                  </.button>
-                <% end %>
-                
-                <label class="block text-xs text-zinc-600 dark:text-zinc-400">
-                  <%= if slot == 1 do %>
-                    <.live_file_input upload={@uploads.radio_slot_1} class="block w-full text-sm" />
-                  <% end %>
-                  
-                  <%= if slot == 2 do %>
-                    <.live_file_input upload={@uploads.radio_slot_2} class="block w-full text-sm" />
-                  <% end %>
-                  
-                  <%= if slot == 3 do %>
-                    <.live_file_input upload={@uploads.radio_slot_3} class="block w-full text-sm" />
-                  <% end %>
-                </label>
-              </div>
-            <% end %>
-          </div>
-          
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">
-            JPG, PNG, GIF, or WebP. Up to 10 MB per image.
-          </p>
-        </div>
-        
-        <footer>
-          <.button phx-disable-with="Saving..." variant="primary">Save Radio</.button>
-          <.button navigate={return_path(@return_to, @radio)}>Cancel</.button>
-        </footer>
-      </.form>
+
+      <FormComponents.radio_form
+        form={@form}
+        radio={@radio}
+        uploads={@uploads}
+        category_options={@category_options}
+        tag_options={@tag_options}
+        cancel_path={return_path(@return_to, @radio)}
+      />
     </Layouts.app>
     """
   end
@@ -95,8 +32,9 @@ defmodule Myappv1Web.RadioLive.Form do
     socket =
       socket
       |> assign(:return_to, return_to(params["return_to"]))
+      |> assign_select_options()
       |> apply_action(socket.assigns.live_action, params)
-      |> allow_uploads()
+      |> UploadHelpers.allow_uploads()
 
     {:ok, socket}
   end
@@ -122,13 +60,10 @@ defmodule Myappv1Web.RadioLive.Form do
     |> assign(:form, to_form(Inventory.change_radio(radio)))
   end
 
-  defp allow_uploads(socket) do
-    opts = [accept: ~w(.jpg .jpeg .png .gif .webp), max_entries: 1, max_file_size: 10_000_000]
-
+  defp assign_select_options(socket) do
     socket
-    |> allow_upload(:radio_slot_1, opts)
-    |> allow_upload(:radio_slot_2, opts)
-    |> allow_upload(:radio_slot_3, opts)
+    |> assign(:category_options, Enum.map(Inventory.list_categories(), &{&1.name, &1.id}))
+    |> assign(:tag_options, Enum.map(Inventory.list_tags(), &{&1.name, &1.id}))
   end
 
   @impl true
@@ -163,7 +98,8 @@ defmodule Myappv1Web.RadioLive.Form do
   defp save_radio(socket, :edit, radio_params) do
     case Inventory.update_radio(socket.assigns.radio, radio_params) do
       {:ok, radio} ->
-        case consume_all_slot_uploads(socket, radio) do
+        # Upload diproses setelah update data inti agar perubahan form tetap tersimpan walau upload gagal.
+        case UploadHelpers.consume_all_slot_uploads(socket, radio) do
           {:ok, radio} ->
             {:noreply,
              socket
@@ -173,7 +109,7 @@ defmodule Myappv1Web.RadioLive.Form do
 
           {:error, reason} ->
             radio = Inventory.get_radio!(radio.id)
-            msg = upload_error_message(reason)
+            msg = UploadHelpers.upload_error_message(reason)
 
             {:noreply,
              socket
@@ -189,7 +125,8 @@ defmodule Myappv1Web.RadioLive.Form do
   defp save_radio(socket, :new, radio_params) do
     case Inventory.create_radio(radio_params) do
       {:ok, radio} ->
-        case consume_all_slot_uploads(socket, radio) do
+        # Pola sama dengan edit: simpan radio dulu, lalu proses upload tiap slot.
+        case UploadHelpers.consume_all_slot_uploads(socket, radio) do
           {:ok, radio} ->
             {:noreply,
              socket
@@ -199,7 +136,7 @@ defmodule Myappv1Web.RadioLive.Form do
 
           {:error, reason} ->
             radio = Inventory.get_radio!(radio.id)
-            msg = upload_error_message(reason)
+            msg = UploadHelpers.upload_error_message(reason)
 
             {:noreply,
              socket
@@ -212,105 +149,6 @@ defmodule Myappv1Web.RadioLive.Form do
         {:noreply, assign(socket, form: to_form(changeset))}
     end
   end
-
-  defp consume_all_slot_uploads(socket, %Radio{id: id} = radio) when is_integer(id) do
-    result =
-      Enum.reduce_while(1..3, {:ok, radio}, fn slot, {:ok, radio} ->
-        upload_atom = slot_upload_atom(slot)
-
-        consume_uploaded_entries(socket, upload_atom, fn %{path: path}, entry ->
-          # LiveView deletes the temp file after this callback; Waffle stores later in the Repo transaction.
-          case File.read(path) do
-            {:ok, binary} ->
-              {:ok, %{filename: upload_filename_for_waffle(entry), binary: binary}}
-
-            {:error, reason} ->
-              {:error, "could not read upload: #{inspect(reason)}"}
-          end
-        end)
-        |> case do
-          [] ->
-            {:cont, {:ok, radio}}
-
-          [{:error, reason}] ->
-            {:halt, {:error, {:read, reason}}}
-
-          [upload] when is_map(upload) and is_map_key(upload, :binary) ->
-            case Inventory.put_radio_image(radio, slot, upload) do
-              {:ok, r} -> {:cont, {:ok, r}}
-              {:error, cs} -> {:halt, {:error, {:upload, cs}}}
-            end
-
-          _ ->
-            {:halt, {:error, :upload}}
-        end
-      end)
-
-    case result do
-      {:ok, radio} -> {:ok, radio}
-      {:error, _} = e -> e
-    end
-  end
-
-  defp slot_upload_atom(1), do: :radio_slot_1
-  defp slot_upload_atom(2), do: :radio_slot_2
-  defp slot_upload_atom(3), do: :radio_slot_3
-
-  defp radio_images_list(%Radio{radio_images: %Ecto.Association.NotLoaded{}}), do: []
-
-  defp radio_images_list(%Radio{radio_images: list}) when is_list(list), do: list
-
-  defp radio_images_list(%Radio{}), do: []
-
-  defp radio_image_at(images, slot) when is_list(images) do
-    Enum.find(images, &(&1.slot == slot))
-  end
-
-  defp radio_image_url(%Myappv1.Inventory.RadioImage{} = ri) do
-    Myappv1.Uploaders.RadioImage.url({ri.image, ri}, :original)
-  end
-
-  defp upload_filename_for_waffle(entry) do
-    base = entry.client_name |> Kernel.||("upload") |> Path.basename()
-    ext = Path.extname(base) |> String.downcase()
-
-    if ext != "" do
-      base
-    else
-      base <> ext_from_mime(entry.client_type)
-    end
-  end
-
-  defp ext_from_mime("image/jpeg"), do: ".jpg"
-  defp ext_from_mime("image/jpg"), do: ".jpg"
-  defp ext_from_mime("image/png"), do: ".png"
-  defp ext_from_mime("image/gif"), do: ".gif"
-  defp ext_from_mime("image/webp"), do: ".webp"
-  defp ext_from_mime(_), do: ".jpg"
-
-  defp upload_error_message({:upload, %Ecto.Changeset{} = cs}) do
-    detail =
-      cs
-      |> Ecto.Changeset.traverse_errors(fn {msg, opts} ->
-        Enum.reduce(opts, msg, fn {key, value}, acc ->
-          String.replace(acc, "%{#{key}}", to_string(value))
-        end)
-      end)
-      |> Enum.map_join("; ", fn {k, v} -> "#{k}: #{Enum.join(v, ", ")}" end)
-
-    if detail != "" do
-      "Radio tersimpan, tetapi gambar gagal: #{detail}"
-    else
-      "Radio tersimpan, tetapi gambar gagal disimpan."
-    end
-  end
-
-  defp upload_error_message({:read, reason}) do
-    "Radio tersimpan, tetapi berkas upload tidak bisa dibaca (#{inspect(reason)})."
-  end
-
-  defp upload_error_message(_),
-    do: "Radio tersimpan, tetapi satu atau lebih gambar gagal disimpan."
 
   defp return_path("index", _radio), do: ~p"/radios"
   defp return_path("show", %Radio{id: id}) when is_integer(id), do: ~p"/radios/#{id}"

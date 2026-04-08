@@ -15,19 +15,19 @@ defmodule Myappv1Web.TagLive.Index do
           </.button>
         </:actions>
       </.header>
-      
+
       <.table
         id="tags"
         rows={@streams.tags}
         row_click={fn {_id, tag} -> JS.navigate(~p"/tags/#{tag}") end}
       >
         <:col :let={{_id, tag}} label="Name">{tag.name}</:col>
-        
+
         <:action :let={{_id, tag}}>
           <div class="sr-only"><.link navigate={~p"/tags/#{tag}"}>Show</.link></div>
-           <.link navigate={~p"/tags/#{tag}/edit"}>Edit</.link>
+          <.link navigate={~p"/tags/#{tag}/edit"}>Edit</.link>
         </:action>
-        
+
         <:action :let={{id, tag}}>
           <.link
             phx-click={JS.push("delete", value: %{id: tag.id}) |> hide("##{id}")}

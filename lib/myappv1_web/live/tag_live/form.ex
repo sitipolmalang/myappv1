@@ -12,7 +12,7 @@ defmodule Myappv1Web.TagLive.Form do
         {@page_title}
         <:subtitle>Use this form to manage tag records in your database.</:subtitle>
       </.header>
-      
+
       <.form for={@form} id="tag-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:name]} type="text" label="Name" />
         <footer>
