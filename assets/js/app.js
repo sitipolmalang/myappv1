@@ -27,6 +27,36 @@ import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 
+// Setup theme preference handler
+const setupTheme = () => {
+  const setTheme = (theme) => {
+    if (theme === "system") {
+      localStorage.removeItem("phx:theme")
+      document.documentElement.removeAttribute("data-theme")
+    } else {
+      localStorage.setItem("phx:theme", theme)
+      document.documentElement.setAttribute("data-theme", theme)
+    }
+  }
+
+  // Set initial theme
+  const initialTheme = localStorage.getItem("phx:theme") || "system"
+  setTheme(initialTheme)
+
+  // Listen for storage changes (cross-tab sync)
+  window.addEventListener("storage", (e) => {
+    if (e.key === "phx:theme") {
+      setTheme(e.newValue || "system")
+    }
+  })
+
+  // Listen for theme change events from LiveView
+  window.addEventListener("phx:set-theme", (e) => {
+    setTheme(e.target.dataset.phxTheme)
+  })
+}
+setupTheme()
+
 const FlashAutoHide = {
   mounted() {
     setTimeout(() => {

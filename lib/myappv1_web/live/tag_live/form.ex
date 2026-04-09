@@ -12,7 +12,7 @@ defmodule Myappv1Web.TagLive.Form do
         {@page_title}
         <:subtitle>Use this form to manage tag records in your database.</:subtitle>
       </.header>
-
+      
       <.form for={@form} id="tag-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:name]} type="text" label="Name" />
         <footer>
@@ -35,6 +35,7 @@ defmodule Myappv1Web.TagLive.Form do
   defp return_to("show"), do: "show"
   defp return_to(_), do: "index"
 
+  # Applies action specific initialization for edit and new actions
   defp apply_action(socket, :edit, %{"id" => id}) do
     tag = Inventory.get_tag!(id)
 
@@ -64,6 +65,8 @@ defmodule Myappv1Web.TagLive.Form do
     save_tag(socket, socket.assigns.live_action, tag_params)
   end
 
+  # Saves tag changes on edit action.
+
   defp save_tag(socket, :edit, tag_params) do
     case Inventory.update_tag(socket.assigns.tag, tag_params) do
       {:ok, tag} ->
@@ -77,6 +80,7 @@ defmodule Myappv1Web.TagLive.Form do
     end
   end
 
+  # save new tag action
   defp save_tag(socket, :new, tag_params) do
     case Inventory.create_tag(tag_params) do
       {:ok, tag} ->

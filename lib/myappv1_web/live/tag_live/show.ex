@@ -10,7 +10,7 @@ defmodule Myappv1Web.TagLive.Show do
       <.header>
         Tag {@tag.id}
         <:subtitle>This is a tag record from your database.</:subtitle>
-
+        
         <:actions>
           <.button navigate={~p"/tags"}><.icon name="hero-arrow-left" /></.button>
           <.button variant="primary" navigate={~p"/tags/#{@tag}/edit?return_to=show"}>
@@ -18,7 +18,7 @@ defmodule Myappv1Web.TagLive.Show do
           </.button>
         </:actions>
       </.header>
-
+      
       <.list>
         <:item title="Name">{@tag.name}</:item>
       </.list>

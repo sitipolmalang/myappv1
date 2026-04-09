@@ -12,7 +12,7 @@ defmodule Myappv1Web.CategoryLive.Form do
         {@page_title}
         <:subtitle>Use this form to manage category records in your database.</:subtitle>
       </.header>
-
+      
       <.form for={@form} id="category-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:name]} type="text" label="Name" />
         <footer>
@@ -34,6 +34,8 @@ defmodule Myappv1Web.CategoryLive.Form do
 
   defp return_to("show"), do: "show"
   defp return_to(_), do: "index"
+
+  # Applies action specific initialization for edit and new actions.
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     category = Inventory.get_category!(id)
@@ -63,6 +65,7 @@ defmodule Myappv1Web.CategoryLive.Form do
     save_category(socket, socket.assigns.live_action, category_params)
   end
 
+  # Saves category changes on edit action.
   defp save_category(socket, :edit, category_params) do
     case Inventory.update_category(socket.assigns.category, category_params) do
       {:ok, category} ->
@@ -76,6 +79,7 @@ defmodule Myappv1Web.CategoryLive.Form do
     end
   end
 
+  # Saves a new category.
   defp save_category(socket, :new, category_params) do
     case Inventory.create_category(category_params) do
       {:ok, category} ->

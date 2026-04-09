@@ -16,14 +16,31 @@ defmodule Myappv1Web.RadioLive.UploadHelpers do
       upload_atom = slot_upload_atom(slot)
 
       Phoenix.LiveView.consume_uploaded_entries(socket, upload_atom, fn %{path: path}, entry ->
-        # File sementara dari LiveView akan dihapus setelah callback ini selesai.
-        # Karena itu, binary dibaca sekarang agar bisa dipakai di proses simpan berikutnya.
-        case File.read(path) do
-          {:ok, binary} ->
-            {:ok, %{filename: upload_filename_for_waffle(entry), binary: binary}}
+        # Optimized file reading: stream large files to avoid memory spikes
+        case File.stat(path) do
+          # Stream files > 500KB
+          {:ok, %{size: size}} when size > 500_000 ->
+            try do
+              # 64KB chunks for better performance
+              stream = File.stream!(path, [], 65536)
+              binary = Enum.reduce(stream, <<>>, &(&2 <> &1))
+              {:ok, %{filename: upload_filename_for_waffle(entry), binary: binary}}
+            rescue
+              e -> {:error, "could not stream upload: #{inspect(e)}"}
+            end
+
+          # Read smaller files directly
+          {:ok, _} ->
+            case File.read(path) do
+              {:ok, binary} ->
+                {:ok, %{filename: upload_filename_for_waffle(entry), binary: binary}}
+
+              {:error, reason} ->
+                {:error, "could not read upload: #{inspect(reason)}"}
+            end
 
           {:error, reason} ->
-            {:error, "could not read upload: #{inspect(reason)}"}
+            {:error, "could not access upload file: #{inspect(reason)}"}
         end
       end)
       |> case do

@@ -15,19 +15,19 @@ defmodule Myappv1Web.CategoryLive.Index do
           </.button>
         </:actions>
       </.header>
-
+      
       <.table
         id="categories"
         rows={@streams.categories}
         row_click={fn {_id, category} -> JS.navigate(~p"/categories/#{category}") end}
       >
         <:col :let={{_id, category}} label="Name">{category.name}</:col>
-
+        
         <:action :let={{_id, category}}>
           <div class="sr-only"><.link navigate={~p"/categories/#{category}"}>Show</.link></div>
-          <.link navigate={~p"/categories/#{category}/edit"}>Edit</.link>
+           <.link navigate={~p"/categories/#{category}/edit"}>Edit</.link>
         </:action>
-
+        
         <:action :let={{id, category}}>
           <.link
             phx-click={JS.push("delete", value: %{id: category.id}) |> hide("##{id}")}
@@ -57,6 +57,7 @@ defmodule Myappv1Web.CategoryLive.Index do
     {:noreply, stream_delete(socket, :categories, category)}
   end
 
+  # Fetches all categories from the inventory.
   defp list_categories() do
     Inventory.list_categories()
   end

@@ -85,10 +85,12 @@ defmodule Myappv1.Inventory do
     radio = Repo.preload(radio, :radio_images)
     existing = Enum.find(radio.radio_images, &(&1.slot == slot))
 
+    # Hapus file lama di luar transaction untuk menghindari I/O blocking
+    file_to_delete = if existing, do: existing, else: nil
+
     result =
       Repo.transaction(fn ->
         if existing do
-          delete_radio_image_file(existing)
           Repo.delete!(existing)
         end
 
@@ -104,6 +106,11 @@ defmodule Myappv1.Inventory do
           {:error, cs} -> Repo.rollback(cs)
         end
       end)
+
+    # Hapus file lama setelah transaction berhasil
+    if file_to_delete && match?({:ok, _}, result) do
+      delete_radio_image_file(file_to_delete)
+    end
 
     case result do
       {:ok, _} -> {:ok, get_radio!(radio.id)}

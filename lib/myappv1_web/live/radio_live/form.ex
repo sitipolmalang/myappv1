@@ -14,7 +14,7 @@ defmodule Myappv1Web.RadioLive.Form do
         {@page_title}
         <:subtitle>Use this form to manage radio records in your database.</:subtitle>
       </.header>
-
+      
       <FormComponents.radio_form
         form={@form}
         radio={@radio}
@@ -60,6 +60,7 @@ defmodule Myappv1Web.RadioLive.Form do
     |> assign(:form, to_form(Inventory.change_radio(radio)))
   end
 
+  # Assigns category and tag options from the database for form select inputs
   defp assign_select_options(socket) do
     socket
     |> assign(:category_options, Enum.map(Inventory.list_categories(), &{&1.name, &1.id}))
@@ -99,6 +100,8 @@ defmodule Myappv1Web.RadioLive.Form do
     end
   end
 
+  # Saves radio changes on edit action.
+  # Handles radio update, image upload consumption, and navigation.
   defp save_radio(socket, :edit, radio_params) do
     case Inventory.update_radio(socket.assigns.radio, radio_params) do
       {:ok, radio} ->
@@ -125,6 +128,9 @@ defmodule Myappv1Web.RadioLive.Form do
     end
   end
 
+  # Saves a new radio with optional image uploads.
+  # Creates radio, consumes uploads, and navigates to success page.
+  # Deletes radio on upload failure for consistency.
   defp save_radio(socket, :new, radio_params) do
     case Inventory.create_radio(radio_params) do
       {:ok, radio} ->
@@ -152,6 +158,7 @@ defmodule Myappv1Web.RadioLive.Form do
     end
   end
 
+  # Returns the navigation path after successful save operation
   defp return_path("index", _radio), do: ~p"/radios"
   defp return_path("show", %Radio{id: id}) when is_integer(id), do: ~p"/radios/#{id}"
   defp return_path("show", _), do: ~p"/radios"

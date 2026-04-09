@@ -16,7 +16,7 @@ defmodule Myappv1Web.RadioLive.Index do
           </.button>
         </:actions>
       </.header>
-
+      
       <.table
         id="radios"
         rows={@streams.radios}
@@ -33,11 +33,11 @@ defmodule Myappv1Web.RadioLive.Index do
             <span class="text-zinc-400">—</span>
           <% end %>
         </:col>
-
+        
         <:col :let={{_id, radio}} label="Name">{radio.name}</:col>
-
+        
         <:col :let={{_id, radio}} label="Code">{radio.code}</:col>
-
+        
         <:col :let={{_id, radio}} label="Category">
           <%= if radio.category do %>
             {radio.category.name}
@@ -45,7 +45,7 @@ defmodule Myappv1Web.RadioLive.Index do
             No Category
           <% end %>
         </:col>
-
+        
         <:col :let={{_id, radio}} label="Tags">
           <%= if radio.tags && length(radio.tags) > 0 do %>
             {Enum.map_join(radio.tags, ", ", & &1.name)}
@@ -53,12 +53,12 @@ defmodule Myappv1Web.RadioLive.Index do
             No Tags
           <% end %>
         </:col>
-
+        
         <:action :let={{_id, radio}}>
           <div class="sr-only"><.link navigate={~p"/radios/#{radio}"}>Show</.link></div>
-          <.link navigate={~p"/radios/#{radio}/edit"}>Edit</.link>
+           <.link navigate={~p"/radios/#{radio}/edit"}>Edit</.link>
         </:action>
-
+        
         <:action :let={{id, radio}}>
           <.link
             phx-click={JS.push("delete", value: %{id: radio.id}) |> hide("##{id}")}
@@ -88,10 +88,12 @@ defmodule Myappv1Web.RadioLive.Index do
     {:noreply, stream_delete(socket, :radios, radio)}
   end
 
+  # Fetches all radios from the inventory
   defp list_radios() do
     Inventory.list_radios()
   end
 
+  # Gets the URL of the first radio image if available
   defp first_radio_image_url(%Radio{radio_images: []}), do: nil
 
   defp first_radio_image_url(%Radio{radio_images: list}) when is_list(list) do
@@ -104,5 +106,6 @@ defmodule Myappv1Web.RadioLive.Index do
     end
   end
 
+  # Fallback for invalid radio_images data
   defp first_radio_image_url(_), do: nil
 end
